@@ -2,8 +2,9 @@
   "name": "testChrono",
   "description": "",
   "version": "0.1.0",
-  "author": "",
+  "author": "Zienko",
   "dependencies": {
+    "amqplib": "^0.5.1",
     "express": "^4.15.5",
     "material-ui": "^0.19.2",
     "prop-types": "^15.5.0",
@@ -38,6 +39,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "startnode": "node nodeserver/index.js",
+    "startphp":"php -S localhost:8080 index.php",
+    "startreacr":"react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
