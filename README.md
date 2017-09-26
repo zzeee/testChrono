@@ -4,7 +4,7 @@
 npm install
 
 запуск (пока раздельно)
-npm run startphp
+npm run startphp\n
 npm run startnode
 npm run startreact
 
