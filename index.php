@@ -1,17 +1,55 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: a.zienko
+ * Date: 26.09.2017
+ * Time: 11:49
+ */
+
 require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-$connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
-$channel = $connection->channel();
+if (isset($_GET["paramsend"]) || isset($_GET["paramget"]))
+{
+  $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
+  $channel = $connection->channel();
+if (isset($_GET["paramsend"])) {
+  //echo($_GET["param"] . "!");
+  $dataparam=$_GET["paramsend"];
 
-$channel->queue_declare('hello', false, false, false, false);
+  $channel->queue_declare('hello', false, false, false, false);
+  $msg = new AMQPMessage($dataparam);
+  $channel->basic_publish($msg, '', 'hello');
+  $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
+  if (count($channel->callbacks)) {    $channel->wait(null,false,55);  }
+//sleep(20);
 
-$msg = new AMQPMessage('Hello World!');
-$channel->basic_publish($msg, '', 'hello');
+//while(count($channel->callbacks)) {    $channel->wait();$i++;echo($i."\n"); if ($i>10) die();}
+  /*
 
-echo " [x] Sent 'Hello World!'\n";
+  $callback = function($msg) {
+    echo " [x] Received ", $msg->body, "\n";
+  };
+  $channel->basic_consume('dataquee', '', false, true, false, false, $callback);
+
+  while(count($channel->callbacks)) {
+    $channel->wait();
+  }*/
+
+//  echo json_encode(array("url"=>$dataparam,"data"=>"dataarr"));
+
+}
+
+
+
+if (isset($_GET["paramget"])) {
+  $channel->basic_consume('hello', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
+  if (count($channel->callbacks)) {    $channel->wait(null,false,55);  }
+}
+  die();
+}
+
 
 
 ?>

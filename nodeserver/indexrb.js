@@ -8,6 +8,7 @@ const querystring = require('querystring')
 var amqp = require('amqplib/callback_api')
 var MongoClient = require('mongodb').MongoClient,
   assert = require('assert')
+var i = 0
 var dbconn = ''
 amqp.connect('amqp://localhost', function(err, conn) {
   if (!err && conn) {
@@ -18,7 +19,10 @@ amqp.connect('amqp://localhost', function(err, conn) {
         ch.assertQueue(q, { durable: false })
         ch.consume(q, function(msg) {
           let url = msg.content.toString()
-          console.log(' [x] Received %s', msg.content.toString())
+          i++
+          console.log('i:', i, url)
+
+          // console.log(' [x] Received %s', msg.content.toString())
           let qres = readList(url).then(
             e => {
               //  console.log("geted", e);
@@ -33,7 +37,7 @@ amqp.connect('amqp://localhost', function(err, conn) {
               //{a : 1}, {a : 2}, {a : 3}
               //],console.log);
               //res.write(e)
-              console.log(res2wr)
+              // console.log(res2wr)
               conn.createChannel(function(err, ch2) {
                 var q = 'hello2'
                 ch2.assertQueue(q, { durable: false })
@@ -45,10 +49,13 @@ amqp.connect('amqp://localhost', function(err, conn) {
             er => {
               //        res.write('No file')
               //      res.end()
-              console.log('err')
-              console.log(er)
+              // console.log('err')
+              // console.log(er)
             }
           )
+          setTimeout(function() {
+            /*    console.log(" [x] Done");*/ ch.ack(msg)
+          }, 1 * 1000)
         })
       },
       { noAck: true }
@@ -123,18 +130,18 @@ function readList(url) {
     srv
       .get(url, res => {
         const { statusCode } = res
-        console.log(statusCode)
+        //console.log(statusCode)
         if (statusCode != 200) rej(new Error('bad server answer')) // Сделать разбивку 404, итп
 
         res.on('data', e => {
-          console.log('.', e.length, e.toString())
+          // console.log('.', e.length, e.toString())
           localAnswer += e
         })
         res.on('error', e => {
           rej(new Error('error'))
         })
         res.on('end', e => {
-          console.log('ended')
+          //console.log('ended')
           okres(localAnswer)
         })
       })
