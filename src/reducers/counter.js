@@ -1,13 +1,17 @@
-import { INCREMENT_COUNTER, DECREMENT_COUNTER } from '../constants/ActionTypes'
+import * as act from '../actions/actions.js'
 
-const initialState = 0
+const initialState = {
+  data: { url: '', data: '' },
+}
 
 export default function counter(state = initialState, action) {
+  console.log('REDUCERS', action)
   switch (action.type) {
-    case INCREMENT_COUNTER:
-      return state + 1
-    case DECREMENT_COUNTER:
-      return state - 1
+    case act.URL_RECEIVED:
+      return Object.assign({}, state, {
+        data: action.data,
+      })
+
     default:
       return state
   }
