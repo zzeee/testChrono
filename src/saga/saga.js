@@ -6,7 +6,7 @@ import { call, put, fork, take, delay, select, takeEvery, takeLatest, effects } 
 import * as act from '../actions/actions.js'
 
 function fetchU(param, param1) {
-  return fetch(param, param1).then(response => (response.status === 200 ? response.text() : Promise.reject('logon')))
+  return fetch(param, param1).then(response => (response.status === 200 ? response.json() : Promise.reject('logon')))
 }
 
 function* doUrl(action) {
@@ -20,8 +20,8 @@ function* doUrl(action) {
         method: 'GET',
         credentials: 'include',
       })
-      console.log('from dourl saga', logd)
-      if (typeof logd === 'object' /*&& logd.status==200*/) yield put(act.receivingUrl(logd))
+      console.log('from dourl saga', logd, typeof logd)
+      if (typeof logd === 'object' /*&& logd.status==200*/) yield put(act.receivingUrl(action.url, logd))
       /*        if ((typeof(logd) == "object") && logd["id"] && parseInt(logd["id"]) > 0) {
           let id = logd["id"];
           logd2 = yield call(fetchU, "/palomnichestvo/backdata/regel/" + id, {
@@ -41,7 +41,7 @@ function* doUrl(action) {
 function* doSaga(action) {
   // console.log("SAGA LOGGER:", action);
   //  while(true) {
-  console.log('saga', action)
+  //console.log('saga', action)
 
   yield takeEvery(act.doGetUrl, doUrl)
 }

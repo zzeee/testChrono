@@ -12,10 +12,10 @@ import * as act from '../actions/actions.js'
 class MainContainer extends React.Component {
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
+    data: PropTypes.object.isRequired,
   }
   constructor(props) {
     super(props)
-    console.log('antilint')
     this.subClick = this.subClick.bind(this)
     this.urlChange = this.urlChange.bind(this)
     this.state = { urltext: '' }
@@ -32,10 +32,14 @@ class MainContainer extends React.Component {
   }
 
   render() {
+    let url = this.props.data.url
+    let data = this.props.data.data
+    //console.log("qrt",  this.props.data);
     return (
       <div>
         <Main txt={this.state.urltext} handleChange={e => this.urlChange(e)} subClick={e => this.subClick(e)} />
-        <div>{this.props.data}</div>
+        <div>URL:{url}</div>
+        <div>DATA:{data}</div>
       </div>
     )
   }
@@ -47,7 +51,6 @@ class MainContainer extends React.Component {
 
 function mapStateToProps(state) {
   if (state) {
-    console.log('PFF', state)
     return {
       data: state.counter.data,
     }
