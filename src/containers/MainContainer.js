@@ -17,25 +17,41 @@ class MainContainer extends React.Component {
     super(props)
     console.log('antilint')
     this.subClick = this.subClick.bind(this)
+    this.urlChange = this.urlChange.bind(this)
+    this.state = { urltext: '' }
   }
 
   subClick(e) {
-    this.props.dispatch(act.doGetUrl('333'))
+    this.props.dispatch(act.doGetUrl(this.state.urltext))
     e.preventDefault()
     return false
+  }
+
+  urlChange(e) {
+    this.setState({ urltext: e.target.value })
   }
 
   render() {
     return (
       <div>
-        wrfewr<Main subClick={e => this.subClick(e)} />
+        <Main txt={this.state.urltext} handleChange={e => this.urlChange(e)} subClick={e => this.subClick(e)} />
+        <div>{this.props.data}</div>
       </div>
     )
   }
 }
 
-const mapStateToProps = createStructuredSelector({
-  counter: createSelector(state => state.counter, counterState => counterState),
-})
+//const mapStateToProps = createStructuredSelector({
+//  data: createSelector(state => state.data, counterState => counterState)
+//})
+
+function mapStateToProps(state) {
+  if (state) {
+    console.log('PFF', state)
+    return {
+      data: state.counter.data,
+    }
+  }
+}
 
 export default connect(mapStateToProps)(MainContainer)
