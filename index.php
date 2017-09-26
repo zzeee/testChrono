@@ -10,18 +10,22 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-if (isset($_GET["paramsend"]) || isset($_GET["paramget"]))
+if (isset($_GET["param"]) || isset($_GET["paramget"]))
 {
   $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
   $channel = $connection->channel();
-if (isset($_GET["paramsend"])) {
+if (isset($_GET["param"])) {
   //echo($_GET["param"] . "!");
-  $dataparam=$_GET["paramsend"];
+  $dataparam=$_GET["param"];
 
   $channel->queue_declare('hello', false, false, false, false);
   $msg = new AMQPMessage($dataparam);
   $channel->basic_publish($msg, '', 'hello');
-  $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
+  $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {
+    echo(json_encode(array("url"=>$_GET["param"],"data"=>$msg->body)));
+  });
+
+      //echo  (json_encode());});
   if (count($channel->callbacks)) {    $channel->wait(null,false,55);  }
 //sleep(20);
 

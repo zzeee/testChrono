@@ -20,7 +20,7 @@ function* doUrl(action) {
         method: 'GET',
         credentials: 'include',
       })
-      console.log('from dourl saga', logd, typeof logd)
+      console.log('from dourl saga', typeof logd)
       if (typeof logd === 'object' /*&& logd.status==200*/) yield put(act.receivingUrl(action.url, logd))
       /*        if ((typeof(logd) == "object") && logd["id"] && parseInt(logd["id"]) > 0) {
           let id = logd["id"];
