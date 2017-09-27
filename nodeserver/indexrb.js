@@ -1,132 +1,128 @@
-/**
- * Created by zzeee on 25.09.2017.
- Rabbit клиент считывателя CSV.
+/** * @author zzeee
+
+ @description Rabbit клиент считывателя CSV.
  */
 
-const https = require('https');
-const http = require('http');
-const amqp = require('amqplib/callback_api');
-const MongoClient = require('mongodb').MongoClient;
-const assert = require('assert');
+const amqp = require('amqplib/callback_api')
+const MongoClient = require('mongodb').MongoClient
+const assert = require('assert')
+const libs = require('./libs.js')
+/** @constant {string} */
+const rabbiturl = 'amqp://localhost'
+/** @constant {string}  */
+const mongourl = 'mongodb://localhost:27017/'
+/** @constant {string} */
+const sendq = 'hello'
+/** @constant {string} */
 
-const rabbiturl = 'amqp://localhost';
-const mongourl = 'mongodb://localhost:27017/';
-const sendq = 'hello';
-const receiveq = 'hello2';
-
-let dbconn = '';
-
-MongoClient.connect(mongourl, (err, db) => { // Коннектимся к монго, подключение - в переменную.
-    if (err) {
-        console.log('Error while connecting to Mongo');
-        process.exit(1);
-    }
-    assert.equal(null, err)
-    dbconn = db
-    console.log('Mongo connected');
-    //   findDocuments(db, console.log);
-});
-
-
-/** считывает текстовый файл из внешнего ресурса, принимает url, возвращает промис, если бы не необходимость сохранять ответ -
- * можно было бы сразу писать  в поток*/
-const readList = url => {
-    return new Promise((okres, rej) => {
-        let srv = http
-        if (url.indexOf('https') >= 0) srv = https //  Урлы могут быть и http и https, выбираем нужный протокол
-        let localAnswer = ''
-        srv
-            .get(url, res => {
-                const {statusCode} = res
-                if (statusCode !== 200) rej(new Error('bad server answer')) // TODO Сделать разбивку 404, итп
-                res.on('data', e1 => {
-                    localAnswer += e1
-                })
-                res.on('end', () => okres(localAnswer))
-                res.on('error', e => {
-                    rej(new Error('error'))
-                })
-            })
-            .on('error', e => {
-                console.log('error', rej(e))
-            })
-    })
-}
-
-/** парсинг csv строки в JSON  в данной версии CSV считает: разделитель -  в параметре delim  кавычки не раскрывает
+const receiveq = 'hello2'
+let dbconn = ''
+let rconn = ''
+MongoClient.connect(mongourl, (err, db) => {
+  // Коннектимся к монго, подключение - в переменную.
+  if (err) {
+    console.log('Error while connecting to Mongo')
+    process.exit(1)
+  }
+  dbconn = db
+  console.log('Mongo connected')
+})
+/** Парсинг csv документа, приходящего в виде строки в JSON.  Разделитель -  в параметре delim.  Кавычки не раскрывает
  * возвращает объект. Строки ответа могут быть разной длины.
+ *
+ * @param {string} data - данные для обработки
+ * @param {string} delim - разделитель, например ','
+ * @returns {object}
+
+ * */
+/** Найти запись в монго по URL
+ * @param callback
+ */
+const findDoc = (url, exists, nexists) => {
+  // Get the documents collection
+  const collection = dbconn.collection('documents')
+  collection.find({ url: url }).toArray((err, docs) => {
+    console.log(`Documents found in Mongo for URL ${url}:`, docs.length)
+    if (err || docs.length === 0) nexists()
+    else exists(docs)
+  })
+}
+/** добавить запись об csv-url в БД.
+ * @param {object} data - данные для вставки в базу
  * */
 
-const parse = (data, delim) => {
-    let qa = data.split(/\r?\n/);
-    let tline = [];
-    for (let str of qa) {
-        let param = str.split(delim);
-        let line = [];
-        for (let i = 0; i < param.length; i++) {
-            let qatt = param[i];
-            line[i] = qatt; /* такой перебор на будущее*/
-        }
-        tline.push(line);
+const insertDoc = (data, callback) => {
+  const collection = dbconn.collection('documents')
+  // Insert some documents
+  collection.insertOne(data, (err, result) => {
+    callback(result)
+  })
+}
+/**
+ *Отправляет сообщение в рэббит по уже установленному соединению
+ *
+ *
+ * @param (string) q - код очереди
+ * @param (string) msg - сообщение
+ * @returns (Promise)
+ *
+ *
+ */
+
+const readFromUrlSendRes = url => {
+  let qres = libs.readUrl(url).then(
+    // Запрашиваем
+    e => {
+      console.log(url, '..read') // Для отладки,- выводим запрашиваемый url
+      let res2wr = { url: url, data: JSON.stringify(libs.parseStringToJson(e, ',')) } // Парсим CSV и формируем ответ
+      insertDoc(res2wr, e => {
+        //console.log(e);
+      })
+      libs.sendRabbit(rconn, receiveq, JSON.stringify(res2wr)).then(e => console.log(url, 'sent success'), console.log)
+    },
+    er => {
+      libs.sendRabbit(rconn, receiveq, JSON.stringify({ err: er }))
+      /* TODO сделать расширенную обработку ошибки - если ничего не пришло, если что-то не так...  */
     }
-    return tline;
+  )
 }
-
-const findDocuments = callback => {
-    // Get the documents collection
-    const collection = dbconn.collection('documents')
-    collection.find({}).toArray((err, docs) => {
-        //console.log(db.listCollections());
-        callback(docs)
-    })
-}
-
-
-const insertCsv = (data, callback) => {
-    const collection = dbconn.collection('documents')
-    // Insert some documents
-    collection.insertOne(data, (err, result) => {
-        callback(result)
-    })
-}
-
-
 amqp.connect(rabbiturl, (err, conn) => {
-    if (!err && conn) {
-        conn.createChannel(
-            (err, ch) => {
-                /**  ждем подключения через Rabbit */
-                console.log('AMQP Connected');
-                ch.assertQueue(sendq, {durable: false});
-                ch.consume(sendq, (msg) => {
-                    let url = msg.content.toString();
-                    /* берем  урл из очереди напрямую*/
-                    console.log(url);
-                    let qres = readList(url).then(
-                        e => {
-                            let res2wr = {url: url, data: (JSON.stringify(parse(e, ',')))};
-                            conn.createChannel((err2, ch2) => { /* пишем в обратку, ответ - вышеописанная структура*/
-                                if (!err2) {
-                                    ch2.assertQueue(receiveq, {durable: false});
-                                    ch2.sendToQueue(receiveq, new Buffer(JSON.stringify(res2wr)));
-                                    console.log('sent');
-                                }
-                                else console.log(err2);
-                            })
-
-                        },
-                        er => {
-                            // console.log(er)
-                            /* TODO сделать обработку ошибки - если ничего не пришло, нет интернета итп */
-                        }
-                    );
-                    setTimeout(() => {
-                        ch.ack(msg)
-                    }, 1000);
-                })
+  // В одном цикле - коннектимся к рэббиту
+  if (!err && conn) {
+    rconn = conn
+    conn.createChannel(
+      (err, ch) => {
+        if (err) {
+          console.log('Error while connecting to Rabbit')
+          process.exit(1)
+        }
+        console.log('AMQP Connected')
+        ch.assertQueue(sendq, { durable: false })
+        ch.consume(sendq, msg => {
+          // Слушаем (!)
+          const url = msg.content.toString()
+          findDoc(
+            url,
+            e => {
+              //console.log(e);
+              let eurl = e[0].url
+              let edata = e[0].data
+              let qres = { url: eurl, data: edata }
+              //console.log(qres);
+              libs
+                .sendRabbit(rconn, receiveq, JSON.stringify(qres))
+                .then(e => console.log('sent from mongo success'), console.log)
             },
-            {noAck: true}
-        )
-    }
+            e => readFromUrlSendRes(url)
+          )
+          /* берем  урл из очереди напрямую */
+          // TODO CHECK IF NOT IN MONGO
+          setTimeout(() => {
+            ch.ack(msg)
+          }, 1000)
+        })
+      },
+      { noAck: true }
+    )
+  }
 })
-
