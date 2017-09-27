@@ -9,7 +9,7 @@ export const dexception = 'dexception'
 export function doGetUrl(url) {
   return {
     type: getURL,
-    url,
+    url
   }
 }
 
@@ -17,13 +17,13 @@ export function receivingUrl(url, data) {
   return {
     type: URL_RECEIVED,
     url,
-    data,
+    data
   }
 }
 
 export function novExcept(url) {
   return {
     type: dexception,
-    url,
+    url
   }
 }

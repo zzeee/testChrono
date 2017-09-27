@@ -10,7 +10,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-if (isset($_GET["param"]) || isset($_GET["paramget"]))
+if (isset($_GET["param"]) || isset($_GET["paramget"]) || isset($_GET["viewq"]) )
 {
   $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
   $channel = $connection->channel();
@@ -21,13 +21,11 @@ if (isset($_GET["param"])) {
   $channel->queue_declare('hello', false, false, false, false);
   $msg = new AMQPMessage($dataparam);
   $channel->basic_publish($msg, '', 'hello');
-  $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {
-    echo(json_encode(array("url"=>$_GET["param"],"data"=>$msg->body)));
-  });
+//echo(json_encode(array("arr"=>'sent')));
+    $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {
+    echo(json_encode(array("url"=>$_GET["param"],"data"=>$msg->body)));  });
 
-      //echo  (json_encode());});
-  if (count($channel->callbacks)) {    $channel->wait(null,false,55);  }
-//sleep(20);
+  if (count($channel->callbacks)) {    $channel->wait(null,false,50);  }
 
 //while(count($channel->callbacks)) {    $channel->wait();$i++;echo($i."\n"); if ($i>10) die();}
   /*
@@ -49,7 +47,14 @@ if (isset($_GET["param"])) {
 
 if (isset($_GET["paramget"])) {
   $channel->basic_consume('hello', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
-  if (count($channel->callbacks)) {    $channel->wait(null,false,55);  }
+  if (count($channel->callbacks)) {    $channel->wait(null,false,50);  }
+}
+
+if (isset($_GET["viewq"])) {
+  $channel->basic_consume('hello', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
+  $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {  echo  (json_encode($msg->body));});
+  if (count($channel->callbacks)) {    $channel->wait(null,false,50);  }
+
 }
   die();
 }
