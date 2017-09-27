@@ -59,9 +59,7 @@ const insertDoc = (data, callback) => {
   })
 }
 /**
- *Отправляет сообщение в рэббит по уже установленному соединению
- *
- *
+ *Отправляет сообщение в рэббит по уже установленному соединению  *
  * @param (string) q - код очереди
  * @param (string) msg - сообщение
  * @returns (Promise)
@@ -104,14 +102,14 @@ amqp.connect(rabbiturl, (err, conn) => {
           findDoc(
             url,
             e => {
-              //console.log(e);
-              let eurl = e[0].url
-              let edata = e[0].data
+              // console.log(e);
+              const eurl = e[0].url
+              const edata = e[0].data
               let qres = { url: eurl, data: edata }
-              //console.log(qres);
+              // console.log(qres);
               libs
                 .sendRabbit(rconn, receiveq, JSON.stringify(qres))
-                .then(e => console.log('sent from mongo success'), console.log)
+                .then(e1 => console.log('sent from mongo success'), console.log)
             },
             e => readFromUrlSendRes(url)
           )
