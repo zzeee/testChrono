@@ -21,6 +21,22 @@ if (isset($_GET["param"])) {
   $channel->queue_declare('hello', false, false, false, false);
   $msg = new AMQPMessage($dataparam);
   $channel->basic_publish($msg, '', 'hello');
+
+
+  $channel->exchange_declare('logs2', 'fanout', false, false, false);
+  list($queue_name, ,) = $channel->queue_declare("");
+  $channel->queue_bind($queue_name, 'logs2');
+  $channel->basic_publish($msg, 'logs2',"QWER");
+
+  $channel->exchange_declare('topic_logs', 'topic', false, false, false);
+
+  $routing_key = 'qwe.anonymous.info';
+
+  $channel->basic_publish($msg, 'topic_logs', $routing_key);
+
+
+
+
 //echo(json_encode(array("arr"=>'sent')));
     $channel->basic_consume('hello2', '', false, true, false, false, function($msg) {
     echo(json_encode(array("url"=>$_GET["param"],"data"=>$msg->body)));  });
