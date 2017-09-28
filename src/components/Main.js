@@ -16,11 +16,11 @@ import React from 'react'
 import pure from 'recompose/pure'
 import PropTypes from 'prop-types'
 
-function Main({ subClick, handleChange, txt }) {
+function Main({ subClick, handleChange, txt,hide }) {
   return (
     <div style={{ background: 'black' }}>
       <form onSubmit={subClick}>
-        <TextField hintText="Введите URL CSV файла" value={txt} onChange={handleChange} />
+          {hide?<div>txt</div>:<TextField hintText="Введите URL CSV файла" value={txt} onChange={handleChange} />}
         <RaisedButton label="Обработать!" primary={true} type="submit" />
       </form>
     </div>
@@ -31,6 +31,7 @@ Main.propTypes = {
   subClick: PropTypes.func.isRequired,
   handleChange: PropTypes.func.isRequired,
   txt: PropTypes.string.isRequired,
+  hide:  PropTypes.bool.isRequired
 }
 
 export default pure(Main)

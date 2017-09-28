@@ -46,7 +46,7 @@ class CReceiver {
 }
 
 const readUrl = url => {
-  console.log('read')
+  console.log('reading:',url)
   return new Promise((okres, rej) => {
     let srv = http
     if (url.indexOf('https') >= 0) srv = https //  Урлы могут быть и http и https, выбираем нужный протокол

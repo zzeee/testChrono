@@ -5,6 +5,8 @@ export const loaded = 'loaded'
 export const getURL = 'get_URL'
 export const URL_RECEIVED = 'receiveURL'
 export const dexception = 'dexception'
+export const receivingErr = 'receivingErr'
+
 
 export function doGetUrl(url) {
   return {
@@ -21,9 +23,17 @@ export function receivingUrl(url, data) {
   }
 }
 
-export function novExcept(url) {
+export function exCommon(url, where) {
   return {
     type: dexception,
+    url, where
+  }
+}
+
+export function exReceivingErr(url) {
+  return {
+    type: receivingErr,
     url
   }
 }
+
