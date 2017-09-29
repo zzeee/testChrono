@@ -79,8 +79,8 @@ const readFromUrlSendRes = url => {
       libs.sendRabbit(rconn, receiveq, JSON.stringify(res2wr)).then(e => console.log(url, 'sent success'), console.log)
     },
     er => {
-        console.log('err,not found:',url,er);
-      libs.sendRabbit(rconn, receiveq, JSON.stringify({ err: "" }));
+      console.log('err,not found:', url, er)
+      libs.sendRabbit(rconn, receiveq, JSON.stringify({ err: '' }))
       /* TODO сделать расширенную обработку ошибки - если ничего не пришло, если что-то не так...  */
     }
   )
@@ -96,11 +96,18 @@ amqp.connect(rabbiturl, (err, conn) => {
           process.exit(1)
         }
         console.log('AMQP Connected')
+        console.log(' [*] Waiting for requests. To exit press CTRL+C')
+
         ch.assertQueue(sendq, { durable: false })
         ch.consume(sendq, msg => {
           // Слушаем (!)
           const url = msg.content.toString()
-            console.log(url);
+          if (url === 'file://test1') {
+            const qres = { res: 'testsucc' }
+            libs.sendRabbit(rconn, receiveq, JSON.stringify(qres))
+            return
+          }
+          console.log(url)
           findDoc(
             url,
             e => {

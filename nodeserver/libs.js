@@ -46,15 +46,21 @@ class CReceiver {
 }
 
 const readUrl = url => {
-  console.log('reading:',url)
+  console.log('reading:', url)
   return new Promise((okres, rej) => {
+    if (url === 'file://test2') {
+      const testok = JSON.stringify({ testres: 'allok' })
+      okres(testok)
+      return
+    }
     let srv = http
     if (url.indexOf('https') >= 0) srv = https //  Урлы могут быть и http и https, выбираем нужный протокол
-    if (url.indexOf('file') >= 0) {
+    if (url.indexOf('file') === 0) {
       try {
         const fname = url.substr('file://'.length)
         const rfile = fs.readFileSync(fname).toString()
         okres(rfile)
+        return
       } catch (ex) {
         console.log('err', ex)
         rej(new Error('error'))

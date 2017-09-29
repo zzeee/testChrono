@@ -10,7 +10,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-if (isset($_GET["param"]) || isset($_GET["paramget"]) || isset($_GET["viewq"]) )
+if (isset($_GET["param"]) || isset($_GET["paramget"]) || isset($_GET["viewq"]) || isset($_GET["testq"]))
 {
   $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
   $channel = $connection->channel();
@@ -43,6 +43,20 @@ if (isset($_GET["param"])) {
 
   if (count($channel->callbacks)) {    $channel->wait(null,false,50);  }
 
+  /*
+  $callback = function($msg){
+    echo ' [x] ',$msg->delivery_info['routing_key'], ':', $msg->body, "\n";
+  };
+
+  $channel->basic_consume($queue_name, '', false, true, false, false, $callback);
+
+  while(count($channel->callbacks)) {
+    $channel->wait();
+  }
+*/
+  $channel->close();
+  $connection->close();
+
 //while(count($channel->callbacks)) {    $channel->wait();$i++;echo($i."\n"); if ($i>10) die();}
   /*
 
@@ -72,6 +86,10 @@ if (isset($_GET["viewq"])) {
   if (count($channel->callbacks)) {    $channel->wait(null,false,50);  }
 
 }
+if (isset($_GET["testq"])) {
+echo(json_encode(array("res"=>"phptestok")));
+}
+
   die();
 }
 
@@ -101,12 +119,20 @@ if (isset($_GET["viewq"])) {
     Learn how to configure a non-root public URL by running `npm run build`.
   -->
   <title>Test Chrono</title>
+    <style type="text/css">
+        html, body {
+            height: 100%;
+            width: 100%;
+            padding-left:10px;padding-top:10px
+        }
+        body {
+            display: table;
+            margin: 0;
+        }
+            </style>
 </head>
-<body>
-<noscript>
-  You need to enable JavaScript to run this app.
-</noscript>
-<div id="root"></div>
+<body style="height:100%">
+<div style="height:100%; position: absolute;    width:100%; top: 0px;    bottom: 0;" id="root"></div>
 <!--
   This HTML file is a template.
   If you open it directly in the browser, you will see an empty page.

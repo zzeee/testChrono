@@ -6,12 +6,12 @@ export const getURL = 'get_URL'
 export const URL_RECEIVED = 'receiveURL'
 export const dexception = 'dexception'
 export const receivingErr = 'receivingErr'
-
+export const resetState = 'resetState'
 
 export function doGetUrl(url) {
   return {
     type: getURL,
-    url
+    url,
   }
 }
 
@@ -19,21 +19,27 @@ export function receivingUrl(url, data) {
   return {
     type: URL_RECEIVED,
     url,
-    data
+    data,
   }
 }
 
 export function exCommon(url, where) {
   return {
     type: dexception,
-    url, where
+    url,
+    where,
   }
 }
 
 export function exReceivingErr(url) {
   return {
     type: receivingErr,
-    url
+    url,
   }
 }
-
+export function ResetState(url) {
+  return {
+    type: resetState,
+    url,
+  }
+}
