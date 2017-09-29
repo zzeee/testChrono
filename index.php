@@ -10,6 +10,61 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
+class CsvParserRpcClient {
+  private $connection;
+  private $channel;
+  private $callback_queue;
+  private $response;
+  private $corr_id;
+
+  public function __construct() {
+    $this->connection = new AMQPStreamConnection(
+      'localhost', 5672, 'guest', 'guest');
+    echo('3');
+
+
+    $this->channel = $this->connection->channel();
+
+    echo('4');
+    list($this->callback_queue, ,) = $this->channel->queue_declare(
+      "", false, false, true, false);
+
+    echo('5');
+    $this->channel->basic_consume(
+      $this->callback_queue, '', false, false, false, false,
+      array($this, 'on_response'));
+
+  }
+  public function on_response($rep) {
+    if($rep->get('correlation_id') == $this->corr_id) {
+      $this->response = $rep->body;
+    }
+  }
+
+  public function call($n) {
+    $this->response = null;
+    $this->corr_id = uniqid();
+
+    $msg = new AMQPMessage(
+      (string) $n,
+      array('correlation_id' => $this->corr_id,
+        'reply_to' => $this->callback_queue)
+    );
+    $this->channel->basic_publish($msg, '', 'rpc_q');
+    while(!$this->response) {
+      $this->channel->wait();
+    }
+    return intval($this->response);
+  }
+};
+echo('0');
+$frpc = new CsvParserRpcClient();
+echo('1');
+
+$response = $frpc->call("file://test1");
+echo " [.] Got ", $response, "\n";
+die();
+
 if (isset($_GET["param"]) || isset($_GET["paramget"]) || isset($_GET["viewq"]) || isset($_GET["testq"]))
 {
   $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
@@ -144,7 +199,7 @@ echo(json_encode(array("res"=>"phptestok")));
   To create a production bundle, use `npm run build` or `yarn build`.
 -->
 </body>
-<script type="text/javascript" src="http://localhost:3000//static/js/bundle.js"></script>
+<scwript type="text/javascript" src="http://localhost:3000//static/js/bundle.js"></scwript>
 
 </html>
 
