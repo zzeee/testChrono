@@ -14,7 +14,7 @@ function Main({ subClick, handleChange, txt, hide }) {
     <div>
       <form onSubmit={subClick}>
         {hide ? (
-          <div>txt</div>
+          <div></div>
         ) : (
           <TextField fullWidth={true} hintText="Введите URL CSV файла" value={txt} onChange={handleChange} />
         )}

@@ -11,17 +11,20 @@ function fetchU(param, param1) {
 
 function* doUrl(action) {
     if (action.type === act.getURL) {
-        console.log('from saga', action);
+        const errmsg='"{\\"err\\":\\"\\"}"';
+
+        //console.log('from saga', action,errmsg);
         try {
             let url = 'http://localhost:8080/?param=' + action.url;
-            console.log('URL', url);
+           // console.log('URL', url);
             const logd = yield call(fetchU, url, {
                 method: 'GET',
                 credentials: 'include',
             });
             console.log('from dourl saga', typeof logd,logd);
 
-            if (typeof logd==="object" && logd.data && logd.data==='{"err":""}')
+
+            if (typeof logd==="object" && logd.data && logd.data===errmsg )
             {
                 // console.log('from dourl saga2', typeof logd.data,logd.data);
                 console.log('ошибка обработки');
@@ -37,7 +40,7 @@ function* doUrl(action) {
             // if (typeof logd=='object' && logd.data && logd.data=={"err":{}} )  {console.log('ошибка обработки');yield put(act.exReceivingErr(action.url)); }
             if (typeof logd === 'object' /* && logd.status==200 */) yield put(act.receivingUrl(action.url, logd))
         } catch (ex) {
-            console.log('error', ex);
+            console.log('error',  ex);
             yield put(act.exCommon(ex, "dourl"))
         }
     }

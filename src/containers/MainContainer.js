@@ -18,10 +18,13 @@ function FORMATLINE(props) {
   if (props.line && props.line.length > 0) {
     const qt = props.line
     //    console.log('QTT', typeof qt, qt.length)
+      let i=0;
     res = qt.map(e => {
+
       let width = e.length * 2 + 'px'
-      console.log('width', width, e)
-      return <TableRowColumn style={{ width: 120 }}>{e}</TableRowColumn>
+      //console.log('width', width, e)
+        i++;
+        return <TableRowColumn key={i} style={{ width: 120 }}>{e}</TableRowColumn>
     })
   }
 
@@ -73,7 +76,8 @@ class MainContainer extends React.Component {
               <Table bodyStyle={{ overflow: 'visible' }}>
                 <TableBody>
                   {data3.map(q => {
-                    i++
+                    i++;
+                    console.log(i);
                     return <FORMATLINE key={i} line={q} />
                   })}
                 </TableBody>
@@ -87,7 +91,6 @@ class MainContainer extends React.Component {
     }
 
     const actionsL = [
-      <FlatButton label="Стоп" primary={true} onClick={this.handleClose} />,
       <FlatButton
         label="Закрыть окно"
         primary={true}
@@ -106,12 +109,7 @@ class MainContainer extends React.Component {
 
     return (
       <div>
-        <Main
-          hide={this.props.reqsent}
-          txt={this.state.urltext}
-          handleChange={e => this.urlChange(e)}
-          subClick={e => this.subClick(e)}
-        />
+
         {url ? (
           <div>
             <br />
@@ -124,6 +122,12 @@ class MainContainer extends React.Component {
           <span />
         )}
         {rest}
+        <Main
+            hide={this.props.reqsent}
+            txt={this.state.urltext}
+            handleChange={e => this.urlChange(e)}
+            subClick={e => this.subClick(e)}
+        />
         <Snackbar
           open={this.props.reqsent}
           message="Запрос отправлен, ожидаем ответ..."

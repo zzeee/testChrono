@@ -20,14 +20,14 @@ export default function main(state = initialState, action) {
     case act.getURL:
       return Object.assign({}, state, {
         reqsent: true,
-        data: [],
+        data: {},
         error: false,
       })
 
     case act.resetState:
       return Object.assign({}, state, {
         reqsent: false,
-        data: [],
+        data: {},
         error: false,
       })
     case act.receivingErr:
