@@ -33,6 +33,7 @@ amqp.connect(rabbiturl, (err, conn) => { // Коннектимся к рэбит
             console.log('Awaiting RPC requests');
             ch.consume(q, (msg) => {
                 const url = (msg.content.toString());
+                console.log(url);
                 libs.parseUrl(db,url).then((e) => {// TODO реакция и на окей и ошибку - пока одинакова- отправка назад. в будущем логика поменяется
                         ch.sendToQueue(msg.properties.replyTo, new Buffer(JSON.stringify(e)), {correlationId: msg.properties.correlationId});
                     },
