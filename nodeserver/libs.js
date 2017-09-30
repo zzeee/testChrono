@@ -1,8 +1,15 @@
-/** * @author zzeee
-
- @description Rabbit клиент считывателя CSV.
-
-  считывает текстовый файл из внешнего ресурса, принимает url, возвращает промис, если бы не необходимость сохранять ответ -
+/**
+ * Libs module.
+ * @module libs
+ * @author zzeee
+ * @description Библиотеки Rabbit клиента считывателя CSV
+ *
+ */
+const https = require('https')
+const http = require('http')
+const fs = require('fs')
+/**
+ считывает текстовый файл из внешнего ресурса, принимает url, возвращает промис, если бы не необходимость сохранять ответ -
  * можно было бы сразу писать  в поток
  *
  * @param {string} url - url для обработки
@@ -10,41 +17,6 @@
  *
  * @async
  * */
-
-const https = require('https')
-const http = require('http')
-const fs = require('fs')
-
-class CReceiver {
-  constructor() {
-    this.dbconn = ''
-    this.rconn = ''
-    console.log('!')
-    MongoClient.connect(mongourl, (err, db) => {
-      // Коннектимся к монго, подключение - в переменную.
-      if (err) {
-        console.log('Error while connecting to Mongo')
-        process.exit(1)
-      }
-      assert.equal(null, err)
-      this.dbconn = db
-      console.log('Mongo connected')
-    })
-    amqp.connect(rabbiturl, (err, conn) => {
-      // В одном цикле - коннектимся к рэббиту
-      if (!err && conn) {
-        this.rconn = conn
-        console.log('connected to rabbit')
-      }
-    })
-  }
-
-  testq() {
-    console.log(dbconn, rconn)
-    return '2'
-  }
-}
-
 const readUrl = url => {
   console.log('reading:', url)
   return new Promise((okres, rej) => {
@@ -86,15 +58,25 @@ const readUrl = url => {
   })
 }
 
+/**
+Парсит csv в простой JSON
+
+ * @param {string} data - данные для обработки
+ * @param {string} delim - разделитель
+ *
+ * @returns {object} Обработанный текст
+ *
+ * 
+ * */
+
 const parseStringToJson = (data, delim) => {
-  let lines = data.split(/\r?\n/)
-  let tline = [] //будущий результат
-  for (let str of lines) {
-    let param = str.split(delim)
+  const lines = data.split(/\r?\n/)
+  const tline = [] // будущий результат
+  for (const str of lines) {
+    const param = str.split(delim)
     let line = []
     for (let i = 0; i < param.length; i++) {
-      const qatt = param[i]
-      line[i] = qatt
+      line[i] = param[i];
       /* такой перебор на будущее */
     }
     tline.push(line)
@@ -103,22 +85,84 @@ const parseStringToJson = (data, delim) => {
   return tline
 }
 
-const sendRabbit = (rconn, mesq, msg) => {
-  return new Promise((ok, nok) => {
-    if (!rconn) nok(new Error('no connection'))
-    rconn.createChannel((err2, ch2) => {
-      if (!err2) {
-        // console.log(msg);
-        ch2.assertQueue(mesq, { durable: false })
-        ch2.sendToQueue(mesq, new Buffer(msg))
-        // console.log('sent'); // Опять для отладки, или место для логов в будущем
-        ok()
-      } else nok(err2)
+
+
+/**
+ Найти документ в Монго-БД проекта
+ * @param {conn} dbconn - установленное соединение с Монго
+ * @param {string} url - проверяемый урл
+ * @param {callback} exists вызывается если запись найдена
+ * @param {callback} nexists вызывается если запись НЕ найдена
+ * */
+const findDoc = (dbconn, url, exists, nexists) => {
+    const collection = dbconn.collection('documents');
+    collection.find({url}).toArray((err, docs) => {
+//        console.log(`Documents found in Mongo for URL ${url}:`, docs.length)
+        if (err || docs.length === 0) nexists()
+        else exists(docs)
     })
-  })
+};
+
+/**
+ Найти документ в Монго-БД проекта
+ * @param {conn} dbconn - установленное соединение с Монго
+ * @param {string} data - запись
+ * @param {callback} callback вызывается после того как запись вставлена в БД
+ */
+
+const insertDoc = (dbconn,data, callback) => {
+    const collection = dbconn.collection('documents')
+    collection.insertOne(data, (err, result) => {
+        callback(result)
+    })
 }
 
+/**
+ Парсит входящий URL. Если запись есть в БД - возвращает ее, если нет - вызывает readUrl, записывает в БД и возвращает данные
+ *
+ * @param {conn} dbconn - установленное соединение с Монго
+ * @param {string} url - url для обработки
+ * @returns {Promise} Обработанный документ
+ *
+ * @async
+ * */
+
+
+const parseUrl = (dbconn,url) => {
+    return new Promise((ok, nok) => {
+        let res2wr = {"url": url, data: "nok"};
+        if (url === 'file://test1') { // Только для тестов
+            res2wr = {res: 'testsucc'}
+            ok(res2wr);
+        } else  // Нормальные условия. Первый случай - если запись уже есть в БД. Возвращаем первую запись, второй - новая.
+            this.findDoc(dbconn,
+                url,
+                e => {
+                    res2wr = {url: e[0].url, data: e[0].data};
+                    ok(res2wr);
+                },
+                e => {
+                    this.readUrl(url).then(
+                        e => {
+                            res2wr = {"url": url, data: JSON.stringify(this.parseStringToJson(e, ','))} // Парсим CSV и формируем ответ
+                            this.insertDoc(dbconn, res2wr, e => {
+                                // console.log(e) // TODO доделать лог
+                            });
+                            ok(res2wr);
+                        },
+                        er => {
+                            res2wr = JSON.stringify({err: ''});
+                            console.log(er);
+                            nok(res2wr); // TODO Доделать вывод ошибок
+                        }
+                    )
+                });
+    });
+}
+
+
 module.exports.readUrl = readUrl
-module.exports.sendRabbit = sendRabbit
+module.exports.parseUrl = parseUrl
+module.exports.findDoc = findDoc
+module.exports.insertDoc = insertDoc
 module.exports.parseStringToJson = parseStringToJson
-module.exports.CReceiver = CReceiver

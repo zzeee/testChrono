@@ -1,5 +1,5 @@
 const libs = require('../nodeserver/libs.js')
-//const assert = require('assert')
+
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 
@@ -12,6 +12,14 @@ const expect = chai.expect
 const assert = chai.assert
 // or:
 chai.should()
+
+describe('check integration. PHP ONLY', () => {
+    it('checking connection to rabbit without external access', () => {
+        const sansw = '{"res":"phptestok"}'
+        return libs.readUrl(serverUrl + '/?testq=1').should.eventually.equal(sansw)
+    })
+})
+
 
 describe('checkjson', () => {
   it('checking csv to json', () => {
@@ -46,15 +54,9 @@ describe('check integration. testing php->rabbit->node without mongo', () => {
 describe('check integration. testing php->rabbit->node without mongo.read from file ', () => {
   it('checking connection to rabbit without external access', () => {
     const cmpr2 =
-      '{"url":"file:\\/\\/example2.csv","data":"{\\"url\\":\\"file:\\/\\/example2.csv\\",\\"data\\":\\"[[\\\\\\"1\\\\\\",\\\\\\"2\\\\\\",\\\\\\"3\\\\\\"],[\\\\\\"\\\\\\"]]\\"}"}'
+      '{"url":"file:\\/\\/example2.csv","data":"{\\"url\\":\\"file:\\/\\/example2.csv\\",\\"data\\":\\"[[\\\\\\"1\\\\\\",\\\\\\"2\\\\\\",\\\\\\"3\\\\\\"]]\\"}"}'
 
     return libs.readUrl(serverUrl + '/?param=file://example2.csv').should.eventually.equal(cmpr2)
   })
 })
 
-describe('check integration. testing php only', () => {
-  it('checking connection to rabbit without external access', () => {
-    const sansw = '{"res":"phptestok"}'
-    return libs.readUrl(serverUrl + '/?testq=1').should.eventually.equal(sansw)
-  })
-})

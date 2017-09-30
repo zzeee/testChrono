@@ -5,6 +5,7 @@
 /vendor
 vendor
 /idea/*
+.idea
 nodeserver/node_modules
 # testing
 /coverage
