@@ -2,16 +2,16 @@
  * Created by zzeee on 01.10.2017.
  */
 import React from 'react';
-import {Table, TableBody, TableRow, TableHeaderColumn, TableHeader, TableRowColumn} from 'material-ui/Table'
+import {Table, TableBody, TableRow, TableRowColumn} from 'material-ui/Table'
+import PropTypes from 'prop-types'
 
-function FORMATCSVLINE(props) {
+const FORMATCSVLINE=(props)=>{
     let res = ''
     if (props.line && props.line.length > 0) {
         const qt = props.line
         //    console.log('QTT', typeof qt, qt.length)
         let i = 0;
         res = qt.map(e => {
-            let width = e.length * 2 + 'px'
             i++;
             return <TableRowColumn key={i} style={{width: 120}}>{e}</TableRowColumn>
         })
@@ -20,8 +20,8 @@ function FORMATCSVLINE(props) {
     return <TableRow>{res}</TableRow>
 }
 
-function CsvTable(props) {
-    let i=0;
+const CsvTable=(props)=>{
+  let i=0;
     const qres=(props.data && props.data.length>0?<Table bodyStyle={{overflow: 'visible'}}>
         <TableBody>
             {props.data.map(q => {
@@ -36,5 +36,11 @@ function CsvTable(props) {
             </TableBody></Table>:<span>Нет информации для отображения</span>);
     return (qres);
 }
+
+CsvTable.propTypes = {
+    data: PropTypes.array,
+    url: PropTypes.string,
+    maxwidth: PropTypes.number
+};
 
 export default CsvTable
