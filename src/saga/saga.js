@@ -21,7 +21,7 @@ function* doUrl(action) {
                 method: 'GET',
                 credentials: 'include',
             });
-            console.log('from dourl saga', typeof logd,logd);
+            //console.log('from dourl saga', typeof logd,logd);
 
 
             if (typeof logd==="object" && logd.data && logd.data===errmsg )
@@ -40,7 +40,7 @@ function* doUrl(action) {
             // if (typeof logd=='object' && logd.data && logd.data=={"err":{}} )  {console.log('ошибка обработки');yield put(act.exReceivingErr(action.url)); }
             if (typeof logd === 'object' /* && logd.status==200 */) yield put(act.receivingUrl(action.url, logd))
         } catch (ex) {
-            console.log('error',  ex);
+           // console.log('error',  ex);
             yield put(act.exCommon(ex, "dourl"))
         }
     }

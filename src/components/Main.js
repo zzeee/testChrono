@@ -2,8 +2,6 @@
  * Created by zzeee on 26.09.2017.
  */
 import TextField from 'material-ui/TextField'
-import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn } from 'material-ui/Table'
-
 import RaisedButton from 'material-ui/RaisedButton'
 import React from 'react'
 import pure from 'recompose/pure'

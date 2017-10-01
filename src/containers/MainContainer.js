@@ -4,7 +4,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
-import {Table, TableBody, TableRow, TableHeaderColumn, TableHeader, TableRowColumn} from 'material-ui/Table'
 import LinearProgress from 'material-ui/LinearProgress'
 import FlatButton from 'material-ui/FlatButton'
 import Snackbar from 'material-ui/Snackbar'
@@ -15,27 +14,13 @@ import {Main, CsvTable} from '../components'
 
 import * as act from '../actions/actions.js'
 
-function FORMATLINE(props) {
-    let res = ''
-    if (props.line && props.line.length > 0) {
-        const qt = props.line
-        //    console.log('QTT', typeof qt, qt.length)
-        let i = 0;
-        res = qt.map(e => {
-
-            let width = e.length * 2 + 'px'
-            i++;
-            return <TableRowColumn key={i} style={{width: 120}}>{e}</TableRowColumn>
-        })
-    }
-
-    return <TableRow>{res}</TableRow>
-}
-
 class MainContainer extends React.Component {
     static propTypes = {
         dispatch: PropTypes.func.isRequired,
         data: PropTypes.object.isRequired,
+        data_d: PropTypes.array,
+        data_d_mwidth: PropTypes.number,
+        data_u: PropTypes.string,
         reqsent: PropTypes.bool.isRequired,
         error: PropTypes.bool.isRequired,
     }
@@ -58,42 +43,7 @@ class MainContainer extends React.Component {
     }
 
     render() {
-        let url = this.props.data.url
-        let data = this.props.data.data
-        let rest = ''
-        try {
-            if (data !== '') {
-                let data2 = JSON.parse(data)
-                //console.log('data2', data2)
-                if (data2.data) {
-                    const data3 = JSON.parse(data2.data)
-                    //  console.log('data3', typeof data3, data3)
-                    let i = 0;
-                    if (data3.length > 0) {
-                        const maxwidth = Math.max.apply(null, data3.map((e) => parseInt(e.length)));
-                        rest = (
-                            <Table bodyStyle={{overflow: 'visible'}}>
-                                <TableBody>
-                                    {data3.map(q => {
-                                        i++;
-                                        let sqlength = q.length;
-                                        //console.log(q,);
-                                        for (let y = 0; y < maxwidth - sqlength; y++) {
-                                            q.push('');
-                                        }
-//                    console.log(q);
-                                        return <FORMATLINE key={i} maxline={maxwidth} line={q}/>
-                                    })}
-                                </TableBody>
-                            </Table>
-                        )
-                    }
-                }
-            }
-        } catch (ex) {
-            //console.log("catche main",ex)
-        }
-
+        const url = this.props.data.url;
         const actionsL = [
             <FlatButton
                 label="Закрыть окно"
@@ -101,7 +51,7 @@ class MainContainer extends React.Component {
                 keyboardFocused={true}
                 onClick={e => this.props.dispatch(act.ResetState())}
             />,
-        ]
+        ];
         const actionsE = [
             <FlatButton
                 label="Закрыть окно"
@@ -109,11 +59,10 @@ class MainContainer extends React.Component {
                 keyboardFocused={true}
                 onClick={e => this.props.dispatch(act.ResetState())}
             />,
-        ]
+        ];
 
         return (
             <div>
-
                 {url ? (
                     <div>
                         <br />
@@ -125,9 +74,10 @@ class MainContainer extends React.Component {
                 ) : (
                     <span />
                 )}
-                {rest}
-                <CsvTable url={this.props.data.url}
-                          data={this.props.data.data}
+
+                <CsvTable url={this.props.data_u}
+                          data={this.props.data_d}
+                          maxwidth={this.props.data_d_mwidth}
                 />
 
                 <Main
@@ -173,6 +123,9 @@ function mapStateToProps(state) {
     if (state) {
         return {
             data: state.main.data,
+            data_d:state.main.data_d,
+            data_d_mwidth:state.main.data_d_mwidth,
+            data_u:state.main.data_u,
             reqsent: state.main.reqsent,
             error: state.main.error,
         }
