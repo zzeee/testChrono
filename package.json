@@ -49,7 +49,7 @@
     "build": "react-scripts build",
     "testr": "react-scripts test --env=jsdom",
     "test": "mocha tests",
-    "doc": "jsdoc -d doc nodeserver",
+    "doc": "jsdoc -r -d doc src nodeserver",
     "eject": "react-scripts eject",
     "prettier": "prettier --single-quote --print-width=120 --trailing-comma es5 --no-semi",
     "format": "npm run prettier -- --write '{,!(build|generators)/**/}*.js'",
